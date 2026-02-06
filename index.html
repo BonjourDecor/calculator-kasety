@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор рулонных штор - Bonjour Decor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .info-card h3 {
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-card input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .info-card input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .info-card.readonly input {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .actions-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-green {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-green:hover {
+            background: #059669;
+        }
+        
+        .btn-red {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-red:hover {
+            background: #dc2626;
+        }
+        
+        .btn-blue {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-blue:hover {
+            background: #2563eb;
+        }
+        
+        .btn-gray {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-gray:hover {
+            background: #4b5563;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .coef-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-left: auto;
+        }
+        
+        .coef-box label {
+            font-size: 14px;
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+        
+        .coef-box input {
+            width: 70px;
+            padding: 8px;
+            border: 2px solid #f59e0b;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .table-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .table-section h3 {
+            margin-bottom: 15px;
+            color: #1a1a2e;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f1f5f9;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 13px;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        
+        td select, td input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        td select:focus, td input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+        
+        .totals-section {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1a1a2e 100%);
+            border-radius: 12px;
+            padding: 25px;
+            color: white;
+        }
+        
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .totals-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .total-row.main {
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            color: #10b981;
+        }
+        
+        .totals-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .payment-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .payment-input label {
+            min-width: 140px;
+        }
+        
+        .payment-input input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(16, 185, 129, 0.2);
+            color: white;
+            text-align: right;
+        }
+        
+        .payment-input input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .discount-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        
+        .discount-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* ПЕЧАТЬ */
+        @media print {
+            body {
+                background: white;
+                padding: 10px;
+            }
+            
+            .btn, .toolbar, .btn-delete, .coef-box, .no-print {
+                display: none !important;
+            }
+            
+            .info-section {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .actions-card {
+                display: none !important;
+            }
+            
+            .info-card, .table-section, .totals-section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            
+            .totals-section {
+                background: #f5f5f5;
+                color: black;
+            }
+            
+            .total-row.main {
+                color: #059669;
+            }
+            
+            .print-header {
+                display: flex !important;
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .print-header > div {
+                flex: 1;
+                border: 1px solid #ddd;
+                padding: 15px;
+                border-radius: 8px;
+            }
+        }
+        
+        .print-header {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .info-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .totals-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Калькулятор рулонных штор</h1>
+        <p class="subtitle">Онлайн и офлайн расчет стоимости · <span class="status-badge">✓ Онлайн</span></p>
+        
+        <!-- Блок для печати - компания и клиент в 2 колонки -->
+        <div class="print-header">
+            <div>
+                <strong>Компания:</strong><br>
+                <span id="printCompany">Салон штор Bonjour Decor</span><br>
+                <span id="printPhone"></span><br>
+                www.decorbonjour.com
+            </div>
+            <div>
+                <strong>Покупатель:</strong><br>
+                <span id="printClient"></span><br>
+                <span id="printClientPhone"></span><br>
+                <span id="printClientAddress"></span>
+            </div>
+        </div>
+        
+        <div class="info-section no-print">
+            <div class="info-card">
+                <h3>🏢 Информация о компании:</h3>
+                <input type="text" value="Салон штор Bonjour Decor" readonly>
+                <input type="text" id="companyPhone" value="+79185558096" placeholder="Телефон компании">
+                <input type="text" value="www.decorbonjour.com" readonly>
+            </div>
+            
+            <div class="info-card">
+                <h3>👤 Информация о покупателе:</h3>
+                <input type="text" id="clientName" placeholder="ФИО покупателя">
+                <input type="text" id="clientPhone" placeholder="Телефон покупателя">
+                <input type="text" id="clientAddress" placeholder="Адрес покупателя">
+            </div>
+            
+            <div class="info-card actions-card">
+                <h3>⚡ Действия:</h3>
+                <button class="btn btn-green" onclick="loadPrice()">📥 Загрузить прайс-лист</button>
+                <button class="btn btn-red" onclick="clearAll()">🗑 Очистить данные</button>
+                <button class="btn btn-blue" onclick="printOrder()">🖨 Печать</button>
+            </div>
+        </div>
+        
+        <div class="toolbar">
+            <button class="btn btn-green" onclick="addRow()">+ Добавить товар</button>
+            <button class="btn btn-blue" onclick="savePrice()">💾 Скачать прайс-лист</button>
+            <button class="btn btn-gray" onclick="saveOrder()">📄 Сохранить заказ</button>
+            
+            <div class="coef-box">
+                <label>Коэффициент:</label>
+                <input type="number" id="coefficient" value="1" min="0.1" step="0.1" onchange="recalculateAll()">
+            </div>
+        </div>
+        
+        <div class="table-section">
+            <h3>📦 Список товаров</h3>
+            <table id="productsTable">
+                <thead>
+                    <tr>
+                        <th style="width:40px">№</th>
+                        <th style="width:150px">Тип системы</th>
+                        <th style="width:180px">Группа ткани</th>
+                        <th style="width:100px">Ширина (м)</th>
+                        <th style="width:100px">Цена за ед.</th>
+                        <th style="width:70px">Кол-во</th>
+                        <th style="width:100px">Установка</th>
+                        <th style="width:100px">Сумма</th>
+                        <th style="width:50px"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="totals-section">
+            <div class="totals-grid">
+                <div class="totals-left">
+                    <div class="total-row">
+                        <span>Стоимость товаров:</span>
+                        <span id="totalGoods">0 ₽</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Стоимость установки:</span>
+                        <span id="totalInstall">0 ₽</span>
+                    </div>
+                    <div class="total-row main">
+                        <span>ИТОГО:</span>
+                        <span id="totalAll">0 ₽</span>
+                    </div>
+                    <div class="discount-checkbox no-print">
+                        <input type="checkbox" id="discountCheck" onchange="recalculateAll()">
+                        <label for="discountCheck">Скидка -5% (высота менее 0.9м)</label>
+                    </div>
+                </div>
+                <div class="totals-right">
+                    <div class="payment-input">
+                        <label>Аванс:</label>
+                        <input type="number" id="advance" placeholder="0" oninput="updateRemaining()">
+                    </div>
+                    <div class="payment-input">
+                        <label>Осталось оплатить:</label>
+                        <input type="text" id="remaining" value="0" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+    
+    <script>
+        // ============ ПРАЙС-ЛИСТЫ ============
+        let priceData = {
+            // КАССЕТЫ
+            "Кассеты": {
+                "1-3": {
+                    sizes: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+                    prices: [2950, 3290, 3627.5, 3967.5, 4307.5, 4645, 4985, 5325, 5662.5, 6002.5, 6427.5, 6765, 7105, 7445, 7782.5, 8122.5],
+                    install: 900,
+                    name: "Группа 1-3"
+                },
+                "4-6": {
+                    sizes: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+                    prices: [3165, 3575, 3987.5, 4397.5, 4807.5, 5220, 5630, 6040, 6452.5, 6862.5, 7357.5, 7770, 8180, 8590, 9000, 9412.5],
+                    install: 900,
+                    name: "Группа 4-6"
+                },
+                "7-9": {
+                    sizes: [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8],
+                    prices: [3906, 4412, 4916, 5422, 5926, 6432, 6936, 7443, 8058, 8564, 9068, 9574, 10078, 10584, 11088],
+                    install: 1000,
+                    name: "Группа 7-9"
+                }
+            },
+            
+            // ЗЕБРА ЮНИ-1
+            "Зебра ЮНИ-1": {
+                "1": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1505,1646,1786,1927,2067,2208,2348,2489,2685,2826,2966,3107,3247,3388,3528], install: 900, name: "Группа 1 — ЭКО" },
+                "2": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1589,1750,1911,2072,2234,2395,2556,2718,2935,3096,3257,3419,3580,3741,3903], install: 900, name: "Группа 2 — Стандарт, Даймонд" },
+                "3": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1646,1822,1998,2173,2349,2525,2700,2876,3108,3283,3459,3635,3810,3986,4162], install: 900, name: "Группа 3 — Стандарт Люкс" },
+                "4": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1665,1846,2026,2207,2387,2568,2748,2929,3165,3346,3526,3707,3887,4068,4248], install: 900, name: "Группа 4 — Вуд, Мейджик" },
+                "5": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1953,2206,2458,2711,2963,3216,3468,3721,4029,4282,4534,4787,5039,5292,5544], install: 900, name: "Группа 5 — Париж, Натюр Блекаут" },
+                "6": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1985,2246,2506,2767,3027,3288,3548,3809,4125,4386,4646,4907,5167,5428,5688], install: 900, name: "Группа 6 — Лён" },
+                "7": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2145,2446,2746,3047,3347,3648,3948,4249,4605,4906,5206,5507,5807,6108,6408], install: 900, name: "Группа 7 — Сафари, Стандарт Димаут" },
+                "8": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2881,3365,3849,4333,4818,5302,5786,6270,6811,7295,7779,8263,8748,9232,9716], install: 900, name: "Группа 8 — Стандарт Блекаут" },
+                "9": { sizes: [0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2932,3429,3927,4424,4921,5418,5915,6413,6966,7463,7960,8457,8954,9452,9949], install: 900, name: "Группа 9 — Элегант (Распродажа)" }
+            },
+            
+            // ЮНИ-1 ЭДЕЛЬВЕЙС
+            "ЮНИ-1": {
+                "1": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1160,1273,1387,1501,1614,1728,1842,1955,2069,2183,2333,2446,2560,2674,2787,2901], install: 900, name: "Группа 1 — Симпл 2, Симпл" },
+                "2": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1247,1389,1532,1675,1818,1960,2103,2246,2389,2531,2710,2853,2996,3138,3281,3424], install: 900, name: "Группа 2 — Жемчуг, Алу Блекаут, Ажур" },
+                "3": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1255,1401,1547,1692,1838,1983,2129,2275,2420,2566,2748,2893,3039,3184,3330,3476], install: 900, name: "Группа 3 — Гамма" },
+                "4": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1269,1419,1569,1719,1869,2019,2169,2319,2469,2619,2805,2955,3105,3255,3405,3555], install: 900, name: "Группа 4 — Карина, Шёлк" },
+                "5": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1310,1474,1638,1802,1966,2130,2294,2458,2622,2786,2986,3150,3314,3478,3641,3805], install: 900, name: "Группа 5 — Металлик, Лён, Кристалл Лайт" },
+                "6": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1346,1522,1698,1874,2050,2226,2402,2578,2754,2930,3142,3318,3494,3670,3846,4022], install: 900, name: "Группа 6 — Рогожка, Металлик Лайт" },
+                "7": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1361,1542,1722,1903,2084,2265,2445,2626,2807,2988,3205,3385,3566,3747,3928,4108], install: 900, name: "Группа 7 — Фейерверк, Ника, Маджестик" },
+                "8": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1371,1555,1739,1923,2107,2292,2476,2660,2844,3028,3248,3432,3617,3801,3985,4169], install: 900, name: "Группа 8 — Спирея, Изабель" },
+                "9": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1398,1591,1784,1977,2170,2363,2556,2750,2943,3136,3365,3558,3751,3944,4137,4330], install: 900, name: "Группа 9 — Орбита Блекаут" },
+                "10": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1421,1622,1823,2024,2225,2426,2627,2827,3028,3229,3466,3667,3868,4069,4270,4471], install: 900, name: "Группа 10 — Скрин Лайт, Лето" },
+                "11": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1440,1647,1855,2062,2269,2476,2684,2891,3098,3305,3548,3756,3963,4170,4377,4585], install: 900, name: "Группа 11 — Ларс Блекаут, Гамма Блекаут" },
+                "12": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1458,1671,1884,2097,2310,2523,2736,2949,3162,3375,3624,3837,4050,4264,4477,4690], install: 900, name: "Группа 12 — Витраж, Луиза, Рококо" },
+                "13": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1521,1755,1989,2223,2457,2691,2925,3159,3393,3627,3897,4131,4365,4599,4833,5067], install: 900, name: "Группа 13 — Аргос, Милан, Иней Блекаут" },
+                "14": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1563,1811,2060,2308,2556,2804,3052,3301,3549,3797,4081,4330,4578,4826,5074,5322], install: 900, name: "Группа 14 — Металлик Блекаут, Мадагаскар" },
+                "15": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1587,1843,2099,2355,2611,2868,3124,3380,3636,3892,4184,4440,4697,4953,5209,5465], install: 900, name: "Группа 15 — Лён Блекаут, Венеция" },
+                "16": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1614,1879,2144,2409,2674,2940,3205,3470,3735,4000,4301,4566,4832,5097,5362,5627], install: 900, name: "Группа 16 — Флора, Фиори, Сомали" },
+                "17": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1654,1932,2211,2489,2768,3046,3325,3603,3882,4160,4475,4753,5032,5310,5588,5867], install: 900, name: "Группа 17 — Кристалл, Орнамент" },
+                "18": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1797,2124,2450,2776,3102,3429,3755,4081,4408,4734,5096,5422,5749,6075,6401,6727], install: 900, name: "Группа 18 — Фьюжен, Рейн, Ромашки" },
+                "19": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1906,2268,2630,2993,3355,3717,4080,4442,4804,5167,5565,5927,6290,6652,7014,7377], install: 900, name: "Группа 19 — Жасмин, Верона" },
+                "20": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2135,2574,3013,3452,3891,4330,4769,5208,5647,6086,6560,6999,7438,7877,8316,8755], install: 900, name: "Группа 20 — Калифорния, Калипсо" },
+                "21": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2791,3449,4106,4764,5421,6079,6737,7394,8052,8709,9403,10060,10718,11376,12033,12691], install: 900, name: "Группа 21 — Сад" },
+                "22": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2696,3322,3948,4573,5199,5825,6451,7077,7702,8328,8990,9616,10242,10867,11493,12119], install: 900, name: "Группа 22 — Верона Блекаут" },
+                "23": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2286,2775,3264,3753,4242,4731,5220,5709,6198,6688,7213,7702,8191,8680,9169,9658], install: 900, name: "Группа 23 — Толедо" },
+                "24": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3135,3908,4680,5452,6224,6997,7769,8541,9314,10086,10894,11666,12439,13211,13983,14756], install: 900, name: "Группа 24 — Толедо Блекаут" },
+                "25": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3701,4664,5627,6590,7553,8516,9479,10442,11405,12369,13365,14328,15291,16254,17217,18180], install: 900, name: "Группа 25" },
+                "26": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2555,3177,3799,4421,5042,5664,6286,6908,7605,8227,8848,9470,10092,10714,11336,11958], install: 900, name: "Группа 26" },
+                "27": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3663,4654,5645,6636,7627,8618,9609,10600,11666,12657,13648,14639,15630,16621,17612,18603], install: 900, name: "Группа 27" },
+                "28": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2349,2964,3579,4194,4809,5424,6039,6654,7344,7959,8574,9190,9805,10420,11035,11650], install: 900, name: "Группа 28" }
+            },
+            
+            // ЮНИ-2
+            "ЮНИ-2": {
+                "1": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1422,1545,1669,1792,1915,2038,2162,2285,2408,2531,2700,2823,2946,3069,3192,3316], install: 900, name: "Группа 1 — Симпл 2, Симпл" },
+                "2": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1509,1662,1814,1966,2118,2271,2423,2575,2728,2880,3077,3229,3382,3534,3686,3839], install: 900, name: "Группа 2 — Жемчуг, Алу Блекаут, Ажур" },
+                "3": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1518,1673,1828,1983,2139,2294,2449,2604,2759,2914,3115,3270,3425,3580,3735,3890], install: 900, name: "Группа 3 — Гамма" },
+                "4": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1531,1691,1850,2010,2169,2329,2488,2648,2808,2967,3172,3331,3491,3650,3810,3969], install: 900, name: "Группа 4 — Карина, Шёлк" },
+                "5": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1573,1746,1920,2093,2267,2440,2614,2787,2961,3134,3353,3526,3700,3873,4047,4220], install: 900, name: "Группа 5 — Металлик, Лён" },
+                "6": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1609,1795,1980,2166,2351,2537,2722,2908,3093,3279,3509,3695,3880,4066,4251,4437], install: 900, name: "Группа 6 — Рогожка" },
+                "7": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1623,1814,2004,2194,2385,2575,2765,2956,3146,3336,3572,3762,3952,4142,4333,4523], install: 900, name: "Группа 7 — Фейерверк, Ника" },
+                "8": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1634,1827,2021,2215,2408,2602,2796,2989,3183,3377,3615,3809,4003,4196,4390,4584], install: 900, name: "Группа 8 — Спирея, Изабель" },
+                "9": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1660,1863,2066,2268,2471,2674,2876,3079,3282,3484,3732,3935,4137,4340,4543,4745], install: 900, name: "Группа 9 — Орбита Блекаут" },
+                "10": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1684,1894,2105,2315,2526,2736,2946,3157,3367,3578,3833,4044,4254,4464,4675,4885], install: 900, name: "Группа 10 — Скрин Лайт, Лето" },
+                "11": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1703,1920,2136,2353,2570,2787,3003,3220,3437,3654,3915,4132,4349,4566,4783,4999], install: 900, name: "Группа 11 — Ларс Блекаут" },
+                "12": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1720,1943,2166,2388,2611,2833,3056,3279,3501,3724,3991,4214,4437,4659,4882,5104], install: 900, name: "Группа 12 — Витраж, Луиза" },
+                "13": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1783,2027,2270,2514,2757,3001,3244,3488,3731,3975,4264,4507,4751,4994,5238,5481], install: 900, name: "Группа 13 — Аргос, Милан" },
+                "14": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1826,2084,2341,2599,2857,3115,3372,3630,3888,4146,4448,4706,4964,5222,5479,5737], install: 900, name: "Группа 14 — Металлик Блекаут" },
+                "15": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1850,2115,2381,2647,2912,3178,3444,3709,3975,4241,4551,4817,5083,5348,5614,5880], install: 900, name: "Группа 15 — Лён Блекаут" },
+                "16": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1877,2151,2426,2701,2975,3250,3525,3799,4074,4349,4668,4943,5218,5492,5767,6042], install: 900, name: "Группа 16 — Флора, Фиори" },
+                "17": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [1917,2205,2493,2781,3069,3357,3645,3933,4221,4509,4842,5130,5418,5706,5994,6282], install: 900, name: "Группа 17 — Кристалл, Орнамент" },
+                "18": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2060,2396,2732,3067,3403,3739,4075,4411,4746,5082,5463,5799,6135,6471,6806,7142], install: 900, name: "Группа 18 — Фьюжен, Рейн" },
+                "19": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2168,2540,2912,3284,3656,4028,4399,4771,5143,5515,5932,6304,6676,7048,7419,7791], install: 900, name: "Группа 19 — Жасмин, Верона" },
+                "20": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2398,2846,3295,3743,4192,4640,5089,5537,5986,6434,6927,7376,7824,8273,8721,9170], install: 900, name: "Группа 20 — Калифорния" },
+                "21": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3054,3721,4388,5055,5722,6389,7056,7724,8391,9058,9770,10437,11104,11771,12438,13105], install: 900, name: "Группа 21 — Сад" },
+                "22": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2959,3594,4229,4865,5500,6135,6771,7406,8041,8677,9357,9992,10628,11263,11898,12534], install: 900, name: "Группа 22 — Верона Блекаут" },
+                "23": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2548,3047,3546,4044,4543,5042,5540,6039,6537,7036,7580,8078,8577,9076,9574,10073], install: 900, name: "Группа 23 — Толедо" },
+                "24": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3398,4180,4962,5743,6525,7307,8089,8871,9653,10434,11261,12043,12825,13607,14388,15170], install: 900, name: "Группа 24 — Толедо Блекаут" },
+                "25": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3910,4884,5858,6831,7805,8779,9752,10726,11700,12673,13697,14670,15644,16618,17591,18565], install: 900, name: "Группа 25" },
+                "26": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2764,3395,4027,4658,5290,5921,6553,7184,7890,8522,9153,9785,10416,11048,11679,12311], install: 900, name: "Группа 26" },
+                "27": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [3871,4872,5873,6873,7874,8875,9875,10876,11952,12952,13953,14954,15954,16955,17956,18956], install: 900, name: "Группа 27" },
+                "28": { sizes: [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8], prices: [2559,3181,3804,4426,5049,5672,6294,6917,7614,8237,8859,9482,10105,10727,11350,11972], install: 900, name: "Группа 28" }
+            }
+        };
+        
+        let rowCounter = 0;
+        
+        // Печать с подготовкой данных
+        function printOrder() {
+            document.getElementById('printPhone').textContent = document.getElementById('companyPhone').value;
+            document.getElementById('printClient').textContent = document.getElementById('clientName').value || '—';
+            document.getElementById('printClientPhone').textContent = document.getElementById('clientPhone').value || '—';
+            document.getElementById('printClientAddress').textContent = document.getElementById('clientAddress').value || '—';
+            window.print();
+        }
+        
+        // Добавить строку
+        function addRow() {
+            rowCounter++;
+            const tbody = document.getElementById('tableBody');
+            const row = document.createElement('tr');
+            row.id = `row-${rowCounter}`;
+            
+            row.innerHTML = `
+                <td>${rowCounter}</td>
+                <td>
+                    <select onchange="updateGroups(${rowCounter})">
+                        <option value="">Выберите тип</option>
+                        ${Object.keys(priceData).map(type => `<option value="${type}">${type}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select id="group-${rowCounter}" onchange="updateSizes(${rowCounter})">
+                        <option value="">Сначала тип</option>
+                    </select>
+                </td>
+                <td>
+                    <select id="size-${rowCounter}" onchange="updatePrice(${rowCounter})">
+                        <option value="">Выберите</option>
+                    </select>
+                </td>
+                <td><input type="number" id="price-${rowCounter}" value="0" readonly></td>
+                <td><input type="number" id="qty-${rowCounter}" value="1" min="1" onchange="calculateRow(${rowCounter})"></td>
+                <td><input type="number" id="install-${rowCounter}" value="900" onchange="calculateRow(${rowCounter})"></td>
+                <td><input type="number" id="sum-${rowCounter}" value="0" readonly></td>
+                <td><button class="btn-delete" onclick="deleteRow(${rowCounter})">×</button></td>
+            `;
+            
+            tbody.appendChild(row);
+        }
+        
+        // Обновить группы при выборе типа
+        function updateGroups(rowId) {
+            const row = document.getElementById(`row-${rowId}`);
+            const typeSelect = row.querySelector('td:nth-child(2) select');
+            const groupSelect = document.getElementById(`group-${rowId}`);
+            const sizeSelect = document.getElementById(`size-${rowId}`);
+            
+            const type = typeSelect.value;
+            groupSelect.innerHTML = '<option value="">Выберите группу</option>';
+            sizeSelect.innerHTML = '<option value="">Выберите</option>';
+            
+            if (type && priceData[type]) {
+                Object.keys(priceData[type]).forEach(group => {
+                    const groupData = priceData[type][group];
+                    groupSelect.innerHTML += `<option value="${group}">${groupData.name}</option>`;
+                });
+            }
+            
+            document.getElementById(`price-${rowId}`).value = 0;
+            document.getElementById(`install-${rowId}`).value = 900;
+            calculateRow(rowId);
+        }
+        
+        // Обновить размеры при выборе группы
+        function updateSizes(rowId) {
+            const row = document.getElementById(`row-${rowId}`);
+            const typeSelect = row.querySelector('td:nth-child(2) select');
+            const groupSelect = document.getElementById(`group-${rowId}`);
+            const sizeSelect = document.getElementById(`size-${rowId}`);
+            
+            const type = typeSelect.value;
+            const group = groupSelect.value;
+            
+            sizeSelect.innerHTML = '<option value="">Выберите</option>';
+            
+            if (type && group && priceData[type][group]) {
+                const sizes = priceData[type][group].sizes;
+                sizes.forEach(size => {
+                    sizeSelect.innerHTML += `<option value="${size}">${size}</option>`;
+                });
+                
+                document.getElementById(`install-${rowId}`).value = priceData[type][group].install;
+            }
+            
+            document.getElementById(`price-${rowId}`).value = 0;
+            calculateRow(rowId);
+        }
+        
+        // Обновить цену при выборе размера (с коэффициентом)
+        function updatePrice(rowId) {
+            const row = document.getElementById(`row-${rowId}`);
+            const typeSelect = row.querySelector('td:nth-child(2) select');
+            const groupSelect = document.getElementById(`group-${rowId}`);
+            const sizeSelect = document.getElementById(`size-${rowId}`);
+            const priceInput = document.getElementById(`price-${rowId}`);
+            
+            const type = typeSelect.value;
+            const group = groupSelect.value;
+            const size = parseFloat(sizeSelect.value);
+            const coef = parseFloat(document.getElementById('coefficient').value) || 1;
+            
+            if (type && group && size && priceData[type][group]) {
+                const data = priceData[type][group];
+                const sizeIndex = data.sizes.indexOf(size);
+                if (sizeIndex !== -1) {
+                    const basePrice = data.prices[sizeIndex];
+                    priceInput.value = Math.round(basePrice * coef);
+                }
+            }
+            
+            calculateRow(rowId);
+        }
+        
+        // Рассчитать строку
+        function calculateRow(rowId) {
+            const price = parseFloat(document.getElementById(`price-${rowId}`).value) || 0;
+            const qty = parseInt(document.getElementById(`qty-${rowId}`).value) || 1;
+            
+            let sum = price * qty;
+            
+            if (document.getElementById('discountCheck').checked) {
+                sum = sum * 0.95;
+            }
+            
+            document.getElementById(`sum-${rowId}`).value = Math.round(sum);
+            recalculateAll();
+        }
+        
+        // Пересчитать всё (включая коэффициент)
+        function recalculateAll() {
+            const coef = parseFloat(document.getElementById('coefficient').value) || 1;
+            let totalGoods = 0;
+            let totalInstall = 0;
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const rowId = row.id.split('-')[1];
+                
+                // Пересчитать цену с новым коэффициентом
+                const typeSelect = row.querySelector('td:nth-child(2) select');
+                const groupSelect = document.getElementById(`group-${rowId}`);
+                const sizeSelect = document.getElementById(`size-${rowId}`);
+                const priceInput = document.getElementById(`price-${rowId}`);
+                
+                const type = typeSelect.value;
+                const group = groupSelect.value;
+                const size = parseFloat(sizeSelect.value);
+                
+                if (type && group && size && priceData[type] && priceData[type][group]) {
+                    const data = priceData[type][group];
+                    const sizeIndex = data.sizes.indexOf(size);
+                    if (sizeIndex !== -1) {
+                        const basePrice = data.prices[sizeIndex];
+                        priceInput.value = Math.round(basePrice * coef);
+                    }
+                }
+                
+                const price = parseFloat(priceInput.value) || 0;
+                const qty = parseInt(document.getElementById(`qty-${rowId}`).value) || 1;
+                const install = parseFloat(document.getElementById(`install-${rowId}`).value) || 0;
+                
+                let goodsSum = price * qty;
+                if (document.getElementById('discountCheck').checked) {
+                    goodsSum = goodsSum * 0.95;
+                }
+                
+                totalGoods += goodsSum;
+                totalInstall += install * qty;
+                
+                document.getElementById(`sum-${rowId}`).value = Math.round(goodsSum);
+            });
+            
+            document.getElementById('totalGoods').textContent = Math.round(totalGoods) + ' ₽';
+            document.getElementById('totalInstall').textContent = Math.round(totalInstall) + ' ₽';
+            document.getElementById('totalAll').textContent = Math.round(totalGoods + totalInstall) + ' ₽';
+            
+            updateRemaining();
+        }
+        
+        // Обновить остаток
+        function updateRemaining() {
+            const total = parseInt(document.getElementById('totalAll').textContent) || 0;
+            const advance = parseInt(document.getElementById('advance').value) || 0;
+            document.getElementById('remaining').value = (total - advance) + ' ₽';
+        }
+        
+        // Удалить строку
+        function deleteRow(rowId) {
+            const row = document.getElementById(`row-${rowId}`);
+            if (row) {
+                row.remove();
+                recalculateAll();
+            }
+        }
+        
+        // Очистить всё
+        function clearAll() {
+            if (confirm('Очистить все данные?')) {
+                document.getElementById('tableBody').innerHTML = '';
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientPhone').value = '';
+                document.getElementById('clientAddress').value = '';
+                document.getElementById('advance').value = '';
+                document.getElementById('discountCheck').checked = false;
+                document.getElementById('coefficient').value = 1;
+                rowCounter = 0;
+                recalculateAll();
+            }
+        }
+        
+        // Сохранить прайс
+        function savePrice() {
+            const dataStr = JSON.stringify(priceData, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'price-list.json';
+            a.click();
+        }
+        
+        // Загрузить прайс
+        function loadPrice() {
+            document.getElementById('fileInput').click();
+        }
+        
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        priceData = JSON.parse(e.target.result);
+                        alert('Прайс-лист успешно загружен!');
+                    } catch (err) {
+                        alert('Ошибка чтения файла');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        // Сохранить заказ
+        function saveOrder() {
+            const order = {
+                client: {
+                    name: document.getElementById('clientName').value,
+                    phone: document.getElementById('clientPhone').value,
+                    address: document.getElementById('clientAddress').value
+                },
+                items: [],
+                totals: {
+                    goods: document.getElementById('totalGoods').textContent,
+                    install: document.getElementById('totalInstall').textContent,
+                    total: document.getElementById('totalAll').textContent,
+                    advance: document.getElementById('advance').value,
+                    remaining: document.getElementById('remaining').value
+                },
+                date: new Date().toLocaleDateString('ru-RU')
+            };
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const rowId = row.id.split('-')[1];
+                const typeSelect = row.querySelector('td:nth-child(2) select');
+                order.items.push({
+                    type: typeSelect.value,
+                    group: document.getElementById(`group-${rowId}`).value,
+                    size: document.getElementById(`size-${rowId}`).value,
+                    price: document.getElementById(`price-${rowId}`).value,
+                    qty: document.getElementById(`qty-${rowId}`).value,
+                    install: document.getElementById(`install-${rowId}`).value,
+                    sum: document.getElementById(`sum-${rowId}`).value
+                });
+            });
+            
+            const dataStr = JSON.stringify(order, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `order-${order.date}.json`;
+            a.click();
+        }
+        
+        // Добавить первую строку при загрузке
+        addRow();
+    </script>
+</body>
+</html>
+
