@@ -45,6 +45,49 @@
             font-size: 12px;
         }
         
+        .current-order-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .current-order-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 25px;
+            align-items: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .current-order-info span:empty {
+            display: none;
+        }
+        
+        .current-order-close {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        
+        .current-order-close:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
         .info-section {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -136,6 +179,15 @@
         
         .btn-gray:hover {
             background: #4b5563;
+        }
+        
+        .btn-orange {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-orange:hover {
+            background: #d97706;
         }
         
         .toolbar {
@@ -378,6 +430,16 @@
         <h1>📋 Калькулятор рулонных штор</h1>
         <p class="subtitle">Онлайн и офлайн расчет стоимости · <span class="status-badge">✓ Онлайн</span></p>
         
+        <!-- Информация о текущем открытом заказе -->
+        <div id="currentOrderBar" class="current-order-bar no-print" style="display:none;">
+            <div class="current-order-info">
+                <span id="currentOrderClient"></span>
+                <span id="currentOrderDate"></span>
+                <span id="currentOrderFile"></span>
+            </div>
+            <button class="current-order-close" onclick="closeCurrentOrder()" title="Закрыть заказ">×</button>
+        </div>
+        
         <!-- Блок для печати - компания и клиент в 2 колонки -->
         <div class="print-header">
             <div>
@@ -421,6 +483,7 @@
             <button class="btn btn-green" onclick="addRow()">+ Добавить товар</button>
             <button class="btn btn-blue" onclick="savePrice()">💾 Скачать прайс-лист</button>
             <button class="btn btn-gray" onclick="saveOrder()">📄 Сохранить заказ</button>
+            <button class="btn btn-orange" onclick="openOrder()">📂 Открыть заказ</button>
             
             <div class="coef-box">
                 <label>Коэффициент:</label>
@@ -484,6 +547,7 @@
     </div>
     
     <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+    <input type="file" id="orderFileInput" accept=".json" style="display:none" onchange="handleOrderLoad(event)">
     
     <script>
         // ============ ПРАЙС-ЛИСТЫ ============
@@ -800,6 +864,7 @@
                 document.getElementById('discountCheck').checked = false;
                 document.getElementById('coefficient').value = 1;
                 rowCounter = 0;
+                closeCurrentOrder();
                 recalculateAll();
             }
         }
@@ -836,13 +901,35 @@
             }
         }
         
+        // Сформировать безопасное имя файла из ФИО
+        function sanitizeFileName(str) {
+            return str
+                .trim()
+                .replace(/[\\/:*?"<>|]/g, '') // запрещённые в имени файла символы
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+        
         // Сохранить заказ
         function saveOrder() {
+            const clientName = document.getElementById('clientName').value;
+            const dateStr = new Date().toLocaleDateString('ru-RU');
+            
             const order = {
+                // маркер формата для валидации при открытии
+                app: 'bonjour-decor-order',
+                version: 2,
                 client: {
-                    name: document.getElementById('clientName').value,
+                    name: clientName,
                     phone: document.getElementById('clientPhone').value,
                     address: document.getElementById('clientAddress').value
+                },
+                company: {
+                    phone: document.getElementById('companyPhone').value
+                },
+                settings: {
+                    coefficient: document.getElementById('coefficient').value,
+                    discount: document.getElementById('discountCheck').checked
                 },
                 items: [],
                 totals: {
@@ -852,7 +939,7 @@
                     advance: document.getElementById('advance').value,
                     remaining: document.getElementById('remaining').value
                 },
-                date: new Date().toLocaleDateString('ru-RU')
+                date: dateStr
             };
             
             const rows = document.querySelectorAll('#tableBody tr');
@@ -870,13 +957,220 @@
                 });
             });
             
+            // Формируем имя файла: "ФИО - дата.json" если есть ФИО, иначе "order-дата.json"
+            let fileName;
+            const safeName = sanitizeFileName(clientName || '');
+            if (safeName) {
+                fileName = `${safeName} - ${dateStr}.json`;
+            } else {
+                fileName = `order-${dateStr}.json`;
+            }
+            
             const dataStr = JSON.stringify(order, null, 2);
             const blob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `order-${order.date}.json`;
+            a.download = fileName;
             a.click();
+            URL.revokeObjectURL(url);
+            
+            // Обновляем панель текущего заказа
+            updateCurrentOrderBar(clientName, dateStr, fileName);
+        }
+        
+        // ============ ОТКРЫТИЕ ЗАКАЗА ============
+        
+        // Открыть заказ (кнопка)
+        function openOrder() {
+            const input = document.getElementById('orderFileInput');
+            input.value = ''; // сброс, чтобы повторный выбор того же файла срабатывал
+            input.click();
+        }
+        
+        // Обработка выбранного файла заказа
+        function handleOrderLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let order;
+                try {
+                    order = JSON.parse(e.target.result);
+                } catch (err) {
+                    alert('Не удалось открыть заказ. Выберите корректный файл JSON.');
+                    return;
+                }
+                
+                // Проверка структуры: заказ должен содержать данные клиента или список позиций
+                const looksLikeOrder = order && typeof order === 'object' &&
+                    (order.client !== undefined || Array.isArray(order.items) || order.totals !== undefined);
+                
+                if (!looksLikeOrder) {
+                    alert('Не удалось открыть заказ. Выберите корректный файл JSON.');
+                    return;
+                }
+                
+                try {
+                    restoreOrder(order, file.name);
+                } catch (err) {
+                    alert('Не удалось открыть заказ. Выберите корректный файл JSON.');
+                }
+            };
+            reader.onerror = function() {
+                alert('Не удалось открыть заказ. Выберите корректный файл JSON.');
+            };
+            reader.readAsText(file);
+        }
+        
+        // Полное восстановление заказа из объекта
+        function restoreOrder(order, fileName) {
+            const client = order.client || {};
+            const company = order.company || {};
+            const settings = order.settings || {};
+            const totals = order.totals || {};
+            
+            // 1. Данные клиента
+            document.getElementById('clientName').value = client.name || '';
+            document.getElementById('clientPhone').value = client.phone || '';
+            document.getElementById('clientAddress').value = client.address || '';
+            
+            // 2. Телефон компании (если сохранён)
+            if (company.phone) {
+                document.getElementById('companyPhone').value = company.phone;
+            }
+            
+            // 3. Настройки: коэффициент и скидка
+            if (settings.coefficient !== undefined && settings.coefficient !== '') {
+                document.getElementById('coefficient').value = settings.coefficient;
+            } else {
+                document.getElementById('coefficient').value = 1;
+            }
+            document.getElementById('discountCheck').checked = !!settings.discount;
+            
+            // 4. Очищаем текущую таблицу и восстанавливаем позиции
+            document.getElementById('tableBody').innerHTML = '';
+            rowCounter = 0;
+            
+            const items = Array.isArray(order.items) ? order.items : [];
+            items.forEach(item => {
+                addRow();
+                const rowId = rowCounter;
+                const row = document.getElementById(`row-${rowId}`);
+                
+                // Тип системы
+                const typeSelect = row.querySelector('td:nth-child(2) select');
+                typeSelect.value = item.type || '';
+                
+                // Восстанавливаем группы для выбранного типа
+                updateGroups(rowId);
+                
+                // Группа ткани
+                const groupSelect = document.getElementById(`group-${rowId}`);
+                groupSelect.value = item.group || '';
+                
+                // Восстанавливаем размеры для выбранной группы
+                updateSizes(rowId);
+                
+                // Размер. Учитываем, что опции формируются из чисел
+                // (например 1.0 превращается в value="1"), поэтому подбираем
+                // подходящую опцию по числовому значению.
+                const sizeSelect = document.getElementById(`size-${rowId}`);
+                const savedSize = item.size;
+                if (savedSize !== undefined && savedSize !== '') {
+                    let matched = false;
+                    // сначала пробуем прямое совпадение значения
+                    for (const opt of sizeSelect.options) {
+                        if (opt.value === String(savedSize)) {
+                            sizeSelect.value = opt.value;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    // затем — совпадение по числовому значению (1.0 == 1)
+                    if (!matched) {
+                        const savedNum = parseFloat(savedSize);
+                        for (const opt of sizeSelect.options) {
+                            if (opt.value !== '' && parseFloat(opt.value) === savedNum) {
+                                sizeSelect.value = opt.value;
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!matched) {
+                        sizeSelect.value = '';
+                    }
+                } else {
+                    sizeSelect.value = '';
+                }
+                
+                // Пересчёт цены по типу/группе/размеру и коэффициенту
+                updatePrice(rowId);
+                
+                // Если в файле сохранена цена вручную (нет в прайсе) — восстанавливаем как есть
+                if (item.price !== undefined && item.price !== '') {
+                    const currentPrice = document.getElementById(`price-${rowId}`).value;
+                    if (!currentPrice || parseFloat(currentPrice) === 0) {
+                        document.getElementById(`price-${rowId}`).value = item.price;
+                    }
+                }
+                
+                // Количество
+                if (item.qty !== undefined && item.qty !== '') {
+                    document.getElementById(`qty-${rowId}`).value = item.qty;
+                }
+                
+                // Установка (монтаж)
+                if (item.install !== undefined && item.install !== '') {
+                    document.getElementById(`install-${rowId}`).value = item.install;
+                }
+                
+                // Сумма (будет пересчитана, но восстановим на случай ручных цен)
+                if (item.sum !== undefined && item.sum !== '') {
+                    document.getElementById(`sum-${rowId}`).value = item.sum;
+                }
+            });
+            
+            // 5. Аванс
+            document.getElementById('advance').value = (totals.advance !== undefined) ? totals.advance : '';
+            
+            // 6. Автоматический пересчёт всех сумм, итога и остатка
+            recalculateAll();
+            
+            // 7. Дата заказа
+            const dateStr = order.date || new Date().toLocaleDateString('ru-RU');
+            
+            // 8. Информационная панель текущего заказа
+            updateCurrentOrderBar(client.name || '', dateStr, fileName);
+        }
+        
+        // Обновить информационную панель текущего заказа
+        function updateCurrentOrderBar(clientName, dateStr, fileName) {
+            const bar = document.getElementById('currentOrderBar');
+            const clientEl = document.getElementById('currentOrderClient');
+            const dateEl = document.getElementById('currentOrderDate');
+            const fileEl = document.getElementById('currentOrderFile');
+            
+            const name = (clientName || '').trim();
+            
+            if (name) {
+                clientEl.textContent = '👤 ' + name;
+                dateEl.textContent = dateStr ? ('📅 ' + dateStr) : '';
+                fileEl.textContent = '';
+            } else {
+                clientEl.textContent = '';
+                dateEl.textContent = '';
+                fileEl.textContent = '📂 ' + (fileName || 'Без названия');
+            }
+            
+            bar.style.display = 'flex';
+        }
+        
+        // Закрыть информацию о текущем заказе (скрыть панель)
+        function closeCurrentOrder() {
+            document.getElementById('currentOrderBar').style.display = 'none';
         }
         
         // Добавить первую строку при загрузке
