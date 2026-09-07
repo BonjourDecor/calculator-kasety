@@ -438,31 +438,56 @@
             flex-wrap: wrap;
         }
         
+        .brand-logo {
+            flex-shrink: 0;
+        }
+        
         .brand-logo img {
-            height: 70px;
+            height: 90px;
             width: auto;
             display: block;
         }
         
         .brand-services {
-            text-align: right;
+            flex: 1;
+            text-align: center;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            min-width: 300px;
         }
         
         .brand-services-list {
             color: #5a3a1a;
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 1.4;
-            max-width: 560px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: 0.3px;
+        }
+        
+        .brand-contacts {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
         }
         
         .brand-phone {
             color: #1a1a2e;
             font-size: 20px;
             font-weight: 700;
+        }
+        
+        .brand-site {
+            color: #5a3a1a;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .brand-site:hover {
+            text-decoration: underline;
         }
         
         @media (max-width: 768px) {
@@ -496,7 +521,10 @@
             </div>
             <div class="brand-services">
                 <div class="brand-services-list">Шторы · Карнизы · Рулонные шторы · Жалюзи · Шторы плиссе · Выезд на замеры</div>
-                <div class="brand-phone">📞 +7 918 555 80-96</div>
+                <div class="brand-contacts">
+                    <span class="brand-phone">📞 +7 918 555 80-96</span>
+                    <a class="brand-site" href="https://www.decorbonjour.com" target="_blank">www.decorbonjour.com</a>
+                </div>
             </div>
         </div>
         
@@ -566,9 +594,10 @@
                 <thead>
                     <tr>
                         <th style="width:40px">№</th>
-                        <th style="width:150px">Тип системы</th>
+                        <th style="width:140px">Тип системы</th>
+                        <th style="width:150px">Название ткани</th>
                         <th style="width:180px">Группа ткани</th>
-                        <th style="width:100px">Ширина (м)</th>
+                        <th style="width:90px">Ширина (м)</th>
                         <th style="width:100px">Цена за ед.</th>
                         <th style="width:70px">Кол-во</th>
                         <th style="width:100px">Установка</th>
@@ -579,6 +608,7 @@
                 <tbody id="tableBody">
                 </tbody>
             </table>
+            <datalist id="fabricList"></datalist>
         </div>
         
         <div class="totals-section">
@@ -723,6 +753,68 @@
         
         let rowCounter = 0;
         
+        // ============ ПОИСК ТКАНИ ПО НАЗВАНИЮ ============
+        
+        // Извлечь список тканей из названия группы: "Группа 5 — Металлик, Лён" -> ["Металлик","Лён"]
+        function extractFabrics(groupName) {
+            if (!groupName) return [];
+            const parts = groupName.split('—');
+            if (parts.length < 2) return [];
+            return parts[1].split(',')
+                .map(s => s.replace(/\(.*?\)/g, '').trim())
+                .filter(s => s.length > 0);
+        }
+        
+        // Построить общий список названий тканей для подсказок (datalist)
+        function buildFabricDatalist() {
+            const set = new Set();
+            Object.keys(priceData).forEach(type => {
+                Object.keys(priceData[type]).forEach(group => {
+                    extractFabrics(priceData[type][group].name).forEach(f => set.add(f));
+                });
+            });
+            const datalist = document.getElementById('fabricList');
+            if (datalist) {
+                datalist.innerHTML = Array.from(set).sort((a, b) => a.localeCompare(b, 'ru'))
+                    .map(f => `<option value="${f}"></option>`).join('');
+            }
+        }
+        
+        // Найти группу по названию ткани в выбранном типе системы
+        function findFabric(rowId) {
+            const row = document.getElementById(`row-${rowId}`);
+            const typeSelect = row.querySelector('td:nth-child(2) select');
+            const groupSelect = document.getElementById(`group-${rowId}`);
+            const query = document.getElementById(`fabric-${rowId}`).value.trim().toLowerCase();
+            
+            if (!query) return;
+            
+            const type = typeSelect.value;
+            if (!type || !priceData[type]) {
+                // тип не выбран — ничего не подставляем, но не мешаем вводу
+                return;
+            }
+            
+            // Ищем группу, где встречается введённая ткань
+            let foundGroup = null;
+            let exact = null;
+            for (const group of Object.keys(priceData[type])) {
+                const fabrics = extractFabrics(priceData[type][group].name).map(f => f.toLowerCase());
+                // точное совпадение имеет приоритет
+                if (fabrics.includes(query)) { exact = group; break; }
+                // частичное совпадение (ткань начинается с введённого текста или содержит его)
+                if (!foundGroup && fabrics.some(f => f.includes(query))) {
+                    foundGroup = group;
+                }
+            }
+            
+            const target = exact || foundGroup;
+            if (target && groupSelect.value !== target) {
+                groupSelect.value = target;
+                updateSizes(rowId);
+            }
+        }
+        
         // Печать с подготовкой данных
         function printOrder() {
             document.getElementById('printPhone').textContent = document.getElementById('companyPhone').value;
@@ -746,6 +838,10 @@
                         <option value="">Выберите тип</option>
                         ${Object.keys(priceData).map(type => `<option value="${type}">${type}</option>`).join('')}
                     </select>
+                </td>
+                <td>
+                    <input type="text" id="fabric-${rowCounter}" list="fabricList" placeholder="Название ткани"
+                           oninput="findFabric(${rowCounter})" autocomplete="off">
                 </td>
                 <td>
                     <select id="group-${rowCounter}" onchange="updateSizes(${rowCounter})">
@@ -788,6 +884,12 @@
             document.getElementById(`price-${rowId}`).value = 0;
             document.getElementById(`install-${rowId}`).value = 900;
             calculateRow(rowId);
+            
+            // Если название ткани уже введено — попробуем подобрать группу для нового типа
+            const fabricInput = document.getElementById(`fabric-${rowId}`);
+            if (fabricInput && fabricInput.value.trim()) {
+                findFabric(rowId);
+            }
         }
         
         // Обновить размеры при выборе группы
@@ -966,6 +1068,7 @@
                 reader.onload = function(e) {
                     try {
                         priceData = JSON.parse(e.target.result);
+                        buildFabricDatalist();
                         alert('Прайс-лист успешно загружен!');
                     } catch (err) {
                         alert('Ошибка чтения файла');
@@ -1022,6 +1125,7 @@
                 const typeSelect = row.querySelector('td:nth-child(2) select');
                 order.items.push({
                     type: typeSelect.value,
+                    fabric: document.getElementById(`fabric-${rowId}`).value,
                     group: document.getElementById(`group-${rowId}`).value,
                     size: document.getElementById(`size-${rowId}`).value,
                     price: document.getElementById(`price-${rowId}`).value,
@@ -1140,6 +1244,11 @@
                 // Восстанавливаем группы для выбранного типа
                 updateGroups(rowId);
                 
+                // Название ткани (если было сохранено)
+                if (item.fabric !== undefined) {
+                    document.getElementById(`fabric-${rowId}`).value = item.fabric;
+                }
+                
                 // Группа ткани
                 const groupSelect = document.getElementById(`group-${rowId}`);
                 groupSelect.value = item.group || '';
@@ -1247,7 +1356,8 @@
             document.getElementById('currentOrderBar').style.display = 'none';
         }
         
-        // Добавить первую строку при загрузке
+        // Инициализация при загрузке
+        buildFabricDatalist();
         addRow();
     </script>
 </body>
