@@ -775,12 +775,16 @@
         function calculateRow(rowId) {
             const price = parseFloat(document.getElementById(`price-${rowId}`).value) || 0;
             const qty = parseInt(document.getElementById(`qty-${rowId}`).value) || 1;
+            const install = parseFloat(document.getElementById(`install-${rowId}`).value) || 0;
             
-            let sum = price * qty;
-            
+            // Стоимость товара (со скидкой, если включена)
+            let goodsSum = price * qty;
             if (document.getElementById('discountCheck').checked) {
-                sum = sum * 0.95;
+                goodsSum = goodsSum * 0.95;
             }
+            
+            // Сумма строки = стоимость товара + стоимость установки
+            const sum = goodsSum + install * qty;
             
             document.getElementById(`sum-${rowId}`).value = Math.round(sum);
             recalculateAll();
@@ -827,7 +831,8 @@
                 totalGoods += goodsSum;
                 totalInstall += install * qty;
                 
-                document.getElementById(`sum-${rowId}`).value = Math.round(goodsSum);
+                // Сумма строки = стоимость товара + стоимость установки
+                document.getElementById(`sum-${rowId}`).value = Math.round(goodsSum + install * qty);
             });
             
             document.getElementById('totalGoods').textContent = Math.round(totalGoods) + ' ₽';
